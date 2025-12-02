@@ -1,14 +1,14 @@
 from datetime import datetime
 
 class Invoice:
-    def __init__(self, invoice_id, sender, receiver, amount):
+    def __init__(self, invoice_id, sender, receiver, amount, currency):
         self.id = invoice_id
         self.sender = sender
         self.receiver = receiver
         self.amount = amount
         self.created_at = datetime.now()
         self.status = "created"
-        self.currency = 'RUB'
+        self.currency = currency
 
     def display_info(self):
         """Выводит информацию о накладной в консоль"""

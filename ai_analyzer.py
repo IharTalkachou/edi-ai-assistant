@@ -41,7 +41,7 @@ def ask_ai_for_help(error_text):
     
     # делаю запрос к модели
     response = ollama.chat(
-        model='llama3.2',
+        model='llama3.1',
         messages=[
             {'role': 'user',
              'content': prompt,

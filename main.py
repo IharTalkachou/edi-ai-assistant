@@ -71,7 +71,10 @@ if __name__ == "__main__":
     [
         {"id": "INV-1001", "sender": "ООО Ромашка", "receiver": "ИП Иванов", "amount": 5000},
         {"id": "INV-1002", "sender": "ЗАО Вектор", "receiver": "ИП Иванов", "amount": -100},
-        {"id": "INV-1003", "sender": "ООО Техно", "receiver": "ОАО Газ", "amount": 12000}
+        {"id": "INV-1003", "sender": "ООО Техно", "receiver": "ОАО Газ", "amount": 12000},
+        {"id": "INV-1004", "sender": "ЗАО Вектор", "receiver": "ИП Петров", "amount": -500},
+        {"id": "INV-1005", "sender": "ЗАО Вектор", "receiver": "ИП Сидоров", "amount": -20},
+        {"id": "INV-1006", "sender": "ООО Ромашка", "receiver": "ИП Иванов", "amount": 7000}
     ]
     """
     # чищу файл логов перед запуском

@@ -23,7 +23,7 @@
 ### Запуск локально (для разработки)
 ```bash
 # 1. Клонируйте репозиторий
-git clone https://github.com/IharTalkachou
+git clone https://github.com/IharTalkachou/edi-ai-assistant.git
 
 # 2. Создайте виртуальное окружение
 python -m venv .venv

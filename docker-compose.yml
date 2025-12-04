@@ -1,0 +1,19 @@
+# сервис базы данных
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: edi_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: edi_admin
+      POSTGRES_PASSWORD: secret_password
+      POSTGRES_DB: edi_system
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgesql/data
+
+volumes:
+  postgres_data:

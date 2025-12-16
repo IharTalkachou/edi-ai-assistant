@@ -1,7 +1,10 @@
 # бизнес-сущность EDI
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey, Boolean
+from sqlalchemy import create_engine, Column, Integer, String, \
+    DateTime, ForeignKey, Boolean, Text, text, JSON
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 from datetime import datetime
+import secrets
+from pgvector.sqlalchemy import Vector
 
 # подключение к базе данных
 DATABASE_URL = 'postgresql://edi_admin:secret_password@localhost:5432/edi_system'
@@ -23,6 +26,7 @@ class User(Base):
     - email (у двух клиентов не может быть одного мыла), 
     - role (админ, клиент, аналитик), 
     - is_active
+    - department
     """
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True, index=True)
@@ -30,8 +34,10 @@ class User(Base):
     email = Column(String, unique=True, index=True)
     role = Column(String, default='client')
     is_active = Column(Boolean, default=True)
+    api_key = Column(String, unique=True, index=True)
+    department = Column(String, nullable=True)
     
-    # переменная для обратной связи с классом EdiDocument через SQLAlchemy
+    # переменные для обратной связи с остальными таблицами через SQLAlchemy
     documents = relationship('EdiDocument', back_populates='owner')
     
     def __repr__(self):
@@ -58,18 +64,92 @@ class EdiDocument(Base):
     # внешний ключ таблицы - ссылка на users.id
     owner_id = Column(Integer, ForeignKey('users.id'))
     
-    # переменная для обратной связи с классом User через SQLAlchemy
+    # переменные для обратной связи с остальными таблицами через SQLAlchemy
     owner = relationship('User', back_populates='documents')
+    analysis = relationship('AnalysisResult', uselist=False, back_populates='document')
     
     def __repr__(self):
         return f"<Document(id={self.id}, type='{self.doc_type}', status='{self.status}')>"
 
+class KnowledgeBaseItem(Base):
+    """
+    Класс для элементов базы знаний = правила.
+    Для моей базы данных - это таблица knowledge_base:
+    - id
+    - topic
+    - rule_text
+    - status (draft (черновик), review (на проверке), approved (утвержден))
+    - created_at
+    - embedding - колонка для хранения вектора pgvector 
+    """
+    __tablename__ = 'knowledge_base'
+    id = Column(Integer, primary_key=True, index=True)
+    topic = Column(String)
+    rule_text = Column(Text)
+    status = Column(String, default='draft')
+    created_at = Column(DateTime, default=datetime.now)
+    embedding = Column(Vector(384))
+
+class AnalysisResult(Base):
+    """
+    Класс для элементов результатов анализа ИИ.
+    Здесь хранится текст JSON от работа и оценка текста аналитиком.
+    Для моей базы данных это таблица analysis_results:
+    - id
+    - document_id
+    - ai_response_json
+    - is_helpful
+    - admin_comment
+    - created_at
+    """
+    __tablename__ = "analysis_results"
+    id = Column(Integer, primary_key=True, index=True)
+    document_id = Column(Integer, ForeignKey("edi_documents.id"))
+    ai_response_json = Column(Text) # текст JSON ответа ИИ
+    is_helpful = Column(Boolean, nullable=True) # Feedback Loop - лайк/дизлайк
+    admin_comment = Column(String, nullable=True) # комментарий аналитика
+    created_at = Column(DateTime, default=datetime.now)
+    
+    # переменные для обратной связи с остальными таблицами через SQLAlchemy
+    document = relationship("EdiDocument", back_populates="analysis")
+
+class PromptTemplate(Base):
+    """
+    Класс для создания, хранения и изменения шаблонов промптов.
+    Для моей базы данных это таблица prompt_templates:
+    - id
+    - name
+    - version
+    - template_text
+    - decscription
+    - is_active
+    - created_at
+    - generation_config - хранение настроек {'temperature': 0.1, 'max_tokens': 512}
+    """
+    __tablename__ = 'prompt_templates'
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True)
+    version = Column(Integer, default=1)
+    template_text = Column(Text)
+    description = Column(String, nullable=True)
+    is_active = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.now)
+    generation_config = Column(JSON, default={})
+    
+    def __repr__(self):
+        return f"<PromptTemplate(name='{self.name}', v={self.version}, active={self.is_active})>"
+      
 # функция создания таблиц
 def init_db():
     """
-    Создание таблиц в базе данных на основе написанных классов User и EdiDocument
+    Создание таблиц в базе данных на основе написанных классов
     """
     print('Создание таблиц в базе данных...')
+    
+    # активация расширения vector для корректной загрузки векторизатора
+    with engine.connect() as connection:
+        connection.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+        connection.commit()
     Base.metadata.create_all(bind=engine)
     print('Таблицы готовы.')
 

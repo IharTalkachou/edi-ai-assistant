@@ -1,0 +1,14 @@
+user: user1
+token: ...
+filename: test-invoice-error-001.xml
+doc_type: Invoice
+content_xml: <Invoice><ID>INV-ERROR-999</ID><Amount>-500</Amount></Invoice>
+
+Rules
+topic: Sums
+rule_text: Сумма документа строго должна быть положительной. Отрицательные суммы - это ошибка.
+
+Валидация:
+Сумма документа не может быть отрицательной.
+В номере документа не допускается символ @.
+Адрес доставки в документе не должен быть на планете Юпитер.

@@ -112,17 +112,26 @@ def upload_document(
     )
     
     # попытка парсинга накладной
+    parsed_data = {}
+    validation_status = "pending"
+    
     if doc.doc_type == 'Invoice':
         parser = EdiXmlParser()
         try:
             parsed_data = parser.parse_invoice(doc.content_xml)
-        except ValueError as e:
-            # если XML кривой возвращаю 400 Bad Request
-            raise HTTPException(status_code=400, detail=str(e))
+            if parsed_data.get('validation_error'):
+                validation_status = 'math_error'
+            else:
+                validation_status = 'valid'
+                
+        except ValueError:
+            validation_status = 'syntax_error'
     
     new_doc = database.EdiDocument(
         **doc.model_dump(),
-        owner_id=user_id
+        owner_id=user_id,
+        parsed_metadata=parsed_data,
+        validation_status=validation_status
     )
     db.add(new_doc)
     db.commit()

@@ -52,6 +52,11 @@ class EdiDocument(Base):
     - content_xml (для хранения "сырого" XML)
     - status (uploaded, validated, error)
     - created_at
+    - owner_id
+    - owner
+    - analysis
+    - parsed_metadata - результат парсинга XML
+    - validation_status - XML валидна или нет
     """
     __tablename__ = 'edi_documents'
     id = Column(Integer, primary_key=True, index=True)
@@ -67,6 +72,10 @@ class EdiDocument(Base):
     # переменные для обратной связи с остальными таблицами через SQLAlchemy
     owner = relationship('User', back_populates='documents')
     analysis = relationship('AnalysisResult', uselist=False, back_populates='document')
+    
+    # переменные для вставки результатов парсинга XML
+    parsed_metadata = Column(JSON, nullable=True)
+    validation_status = Column(String, default="pending")
     
     def __repr__(self):
         return f"<Document(id={self.id}, type='{self.doc_type}', status='{self.status}')>"

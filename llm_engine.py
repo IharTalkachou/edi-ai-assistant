@@ -80,15 +80,3 @@ class LLMEngine:
         else:
             print(f'Предупреждение: ИИ выдала ответ без кода JSON: {raw_text}')
             return raw_text
-
-# блок тестирования
-if __name__ == "__main__":
-    engine = LLMEngine()
-    response = engine.analyze_error(
-        doc_id="INV-123",
-        doc_type="Invoice",
-        error_text="Invalid XML syntax at line 5",
-        rules="XML должен соответствовать схеме UBL 2.1"
-    )
-    print("\n--- Ответ ИИ-помощника ---")
-    print(response)

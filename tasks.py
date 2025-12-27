@@ -38,6 +38,21 @@ def analyze_document_task(doc_id: int):
             logger.info('Worker: Skipping non-invoice document')
             return 'Skipped: non-invoice'
         
+        if doc.validation_status == 'math_error':
+            error_msg = doc.parsed_metadata.get('validation_error', 'Не сходится математика.')
+            logger.info(f'Воркер: найдена математическая ошибка - {error_msg}')
+            
+            engine = get_llm()
+            analysis_json = engine.analyze_error(
+                doc_id=str(doc_id),
+                doc_type=doc.doc_type,
+                error_text=error_msg,
+                rules=rules_text,
+                template_text=template_text,
+                generation_config=gen_config
+            )
+        
+        
         # превращаю ошибку (сам документ) в вектор запроса
         query_text = 'Проблемы с суммой, валютой или датами'
         query_vector = embedder.get_embedding(query_text)

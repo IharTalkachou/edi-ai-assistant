@@ -1,5 +1,5 @@
 # описание того, как должны выглядеть данные, поступающие от клиента
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, field_validator
 from typing import List, Optional, Any, Dict
 from datetime import datetime
 
@@ -65,6 +65,22 @@ class PromptCreate(BaseModel):
     description: Optional[str] = None
     generation_config: Optional[Dict[str, Any]] = {'temperature': 0.1, 'max_tokens': 512}
 
+    @field_validator('generation_config')
+    def check_temperature(cls, value):
+        if not value:
+            return value
+        
+        if 'temperature' in value:
+            temp = value['temperature']
+            
+            if not isinstance(temp, (int, float)):
+                raise ValueError(f'Значение температуры должно быть числовым, а пришло: {type(temp)}')
+            
+            if not (0 <= temp <= 1):
+                raise ValueError(f'Температура должна находиться в интервале 0...1, сейчас {temp}')
+            
+        return value
+        
 class PromptResponse(PromptCreate):
     id: int
     version: int

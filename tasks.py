@@ -74,15 +74,9 @@ def analyze_document_task(doc_id: int):
             # запасной вариант, если в БД пусто
             logger.warning('Воркер: Активный промпт не найден, использую дефолтный шаблон.')
             template_text = """
-            <|start_header_id|>system<|end_header_id|>
-            Ты эксперт EDI. Правила: {{ context_rules }}
-            <|eot_id|>
-            <|start_header_id|>user<|end_header_id|>
-            Ошибка: {{ error_text }} для документа {{ doc_id }}
-            <|eot_id|>
-            <|start_header_id|>assistant<|end_header_id|>
+            <|start_header_id|>system<|end_header_id|>\nТы — опытный инженер технической поддержки EDI-системы.\nТвоя задача — проанализировать ошибку и дать четкие рекомендации по исправлению в формате JSON.\nИспользуй следующий контекст (правила системы):\n{{ context_rules }}\n<|eot_id|><|start_header_id|>user<|end_header_id|>\nПроанализируй следующую ошибку при загрузке документа:\nID документа: {{ doc_id }}\nТип: {{ doc_type }}\nТекст ошибки: {{ error_text }}\nВерни ответ ТОЛЬКО в формате JSON следующей структуры:\n{\n\"reason\": \"Краткая причина ошибки\",\n\"solution\": \"Пошаговая инструкция для пользователя\",\n\"criticality\": \"low/medium/high\"\n}\n<|eot_id|><|start_header_id|>assistant<|end_header_id|>"
             """
-            gen_config = {"temperature": 0.1}
+            gen_config = {"temperature": 0.1, "max_tokens": 512}
         
         # применение языковой модели
         # нужен контекст: анализируется сам XML на предмет ошибок, 

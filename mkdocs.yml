@@ -1,0 +1,23 @@
+site_name: EDI Enterprise AI Docs
+
+theme:
+  name: material
+  palette:
+    primary: teal
+    accent: purple
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [.]
+
+nav:
+  - 'Главная': index.md
+  - 'Архитектура':
+    - 'Модели баз данных': reference/database.md
+    - 'Схемы API': reference/schemas.md
+    - 'Парсер XML': reference/parser.md
+  - 'Движок AI': reference/ai.md
+  

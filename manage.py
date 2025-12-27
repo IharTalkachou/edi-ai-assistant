@@ -27,20 +27,28 @@ def run_command(command, cwd=None, env=None, shell=True):
 def start_services():
     print(f"{GREEN}Запуск системы EDI AI Assistant...{RESET}")
     # проверка докера
-    print(f"{YELLOW}[1/3] Запуск инфраструктуры (Docker)...{RESET}")
+    print(f"{YELLOW}[1/4] Запуск инфраструктуры (Docker)...{RESET}")
     subprocess.run('docker-compose up -d', shell=True, check=True)
     time.sleep(15)
     
     # запуск celery worker
-    print(f"{YELLOW}[2/3] Запуск ИИ-помощника...{RESET}")
+    print(f"{YELLOW}[2/4] Запуск ИИ-помощника...{RESET}")
     if sys.platform == 'win32':
         worker_cmd = 'start "Celery Worker" cmd /k "celery -A tasks worker --loglevel=info --pool=solo"'
         subprocess.run(worker_cmd, shell=True)
     else:
         subprocess.Popen("celery -A tasks worker --loglevel=info --pool=solo")
     
+    # запуск frontend
+    print(f"{YELLOW}[3/4] Starting UI...{RESET}")
+    if sys.platform == "win32":
+        ui_cmd = 'start "Streamlit UI" cmd /k "streamlit run frontend/ui.py"'
+        subprocess.run(ui_cmd, shell=True)
+    else:
+        subprocess.Popen("streamlit run frontend/ui.py", shell=True)
+    
     # запуск API
-    print(f"{YELLOW}[3/3] Запуск FastAPI...{RESET}")
+    print(f"{YELLOW}[4/4] Запуск FastAPI...{RESET}")
     print(f"{GREEN}Система запущена и готова. Логи API:{RESET}")
     try:
         subprocess.run("uvicorn main:app --reload", shell=True)

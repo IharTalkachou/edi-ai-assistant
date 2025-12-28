@@ -147,6 +147,27 @@ class PromptTemplate(Base):
     
     def __repr__(self):
         return f"<PromptTemplate(name='{self.name}', v={self.version}, active={self.is_active})>"
+
+class ValidationSchema(Base):
+    """
+    Хранилище XSD-схем.
+    Пример: name='BLRWBL', content='<xsd:schema...>'
+    Таблица validation_schemas:
+        - id 
+        - name - тип документа, к которому применяется схема
+        - xsd_content - текст схемы
+        - version - версия схемы
+        - is_active
+        - created_at
+    """
+    __tablename__ = 'validation_schemas'
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True)
+    xsd_content = Column(Text)
+    version = Column(Integer, default=1)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.now)
       
 # функция создания таблиц
 def init_db():
@@ -161,46 +182,4 @@ def init_db():
         connection.commit()
     Base.metadata.create_all(bind=engine)
     print('Таблицы готовы.')
-
-# блок тестирования
-if __name__ == '__main__':
-    # инициализация создания таблиц
-    init_db()
-    # открытие сессии
-    db = SessionLocal()
     
-    # создание пользователя test_client
-    existing_user = db.query(User).filter(User.username == 'test_client').first()
-    
-    if not existing_user:
-        print('Создание тестового пользователя...')
-        new_user = User(username='test_client', email='client@company.com', role='client')
-        db.add(new_user)
-        db.commit()
-        db.refresh(new_user)
-        print(f'   Пользователь создан: ID {new_user.id}')
-        user_id = new_user.id
-    else:
-        print(f'   Пользователь уже существует: ID {existing_user.id}')
-        user_id = existing_user.id
-        
-    # создание документа test_invoice
-    print('Создание тестового документа...')
-    new_doc = EdiDocument(
-        filename='test_invoice.xml',
-        doc_type = 'Invoice',
-        content_xml='<xml>Test</xml>',
-        owner_id=user_id
-    )
-    db.add(new_doc)
-    db.commit()
-    print('Тестовый документ создан и помещён в базу данных.')
-    
-    # тест связи SQLAlchemy
-    user = db.query(User).filter(User.id == user_id).first()
-    print(f'\nДокументы пользователя {user.username}:')
-    for doc in user.documents:
-        print(f'   - {doc.filename} (Статус: {doc.status})')
-    
-    # завершении сессии
-    db.close()

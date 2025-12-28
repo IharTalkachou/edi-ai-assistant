@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           elementFormDefault="qualified">
+
+  <!-- Простая схема, которая проверяет структуру без Namespaces для простоты теста -->
+  <!-- Или давай лучше сделаем XSD, который разрешает любые NS, но требует структуру -->
+  
+  <xs:element name="Invoice">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:any minOccurs="0" maxOccurs="unbounded" processContents="skip"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

@@ -89,3 +89,16 @@ class PromptResponse(PromptCreate):
     
     class Config:
         from_attributes = True
+
+# схемы для работы с xsd-схемами
+class ValidationSchemaCreate(BaseModel):
+    name: str
+    xsd_content: str
+
+class ValidationSchemaResponse(ValidationSchemaCreate):
+    id: int
+    version: int
+    is_active: bool
+    
+    class Config:
+        from_attributes = True

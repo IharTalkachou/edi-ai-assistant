@@ -1,6 +1,10 @@
-from database import SessionLocal, KnowledgeBaseItem, PromptTemplate
+from database import SessionLocal, KnowledgeBaseItem, PromptTemplate, init_db
 
 def seed_data():
+    # принудительно создаю таблицы
+    print('Проверка наличия / создание таблиц')
+    init_db()
+    
     db = SessionLocal()
     try:
         if not db.query(KnowledgeBaseItem).first():

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
+           xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+           xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
+           targetNamespace="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
+           elementFormDefault="qualified"
+           attributeFormDefault="unqualified">
+
+    <xs:import namespace="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"/>
+    <xs:import namespace="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"/>
+
+    <xs:element name="Invoice">
+        <xs:complexType>
+            <xs:sequence>
+                <!-- Обязательные поля по стандарту -->
+                <xs:element ref="cbc:UBLVersionID" minOccurs="1"/>
+                <xs:element ref="cbc:ID" minOccurs="1"/>
+                <xs:element ref="cbc:IssueDate" minOccurs="1"/>
+                
+                <!-- Валюта обязательна -->
+                <xs:element ref="cbc:DocumentCurrencyCode" minOccurs="1"/>
+                
+                <xs:element ref="cac:AccountingSupplierParty" minOccurs="1"/>
+                <xs:element ref="cac:AccountingCustomerParty" minOccurs="1"/>
+                
+                <!-- Итоги обязательны -->
+                <xs:element ref="cac:LegalMonetaryTotal" minOccurs="1"/>
+                
+                <!-- Строки товаров (минимум 1) -->
+                <xs:element ref="cac:InvoiceLine" minOccurs="1" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>

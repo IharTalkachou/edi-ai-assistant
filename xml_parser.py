@@ -13,10 +13,36 @@ class EdiXmlParser:
         'ubl': 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2'
     }
     
-    def parse_invoice(self, xml_content: str):
+    def validate_xsd(self, xml_bytes: bytes, xsd_content: str):
+        """
+        валидация по схеме XSD
+        """
         try:
-            # парсинг XML 
-            # удаление ByteOrderMark (BOM) если есть - чтобы lxml мог работать с файлом
+            # из строки создается объект схемы
+            xsd_doc = etree.fromstring(xsd_content.encode('utf-8'))
+            schema = etree.XMLSchema(xsd_doc)
+            
+            # создается объект XML
+            xml_doc = etree.fromstring(xml_bytes)
+            
+            # валидация
+            schema.assertValid(xml_doc)
+            logger.info('XSD валидация пройдена')
+            return True, None
+        
+        except etree.DocumentInvalid as e:
+            logger.warning(f'XSD валидация не пройдена: {e}')
+            return False, str(e)
+        except Exception as e:
+            return False, f'Ошибка в схеме XML: {e}'
+        
+    def parse_invoice(self, xml_content: str):
+        """
+        парсинг XML типа документа Invoice
+        """
+        try:
+             
+            #удаление ByteOrderMark (BOM) если есть - чтобы lxml мог работать с файлом
             if isinstance(xml_content, str):
                 xml_bytes = xml_content.encode('utf-8')
             else:

@@ -66,9 +66,15 @@ def run_migrations():
     subprocess.run('python database.py', shell=True)
 
 def reset_db():
-    print(f'{RED}Удаление и повторное создание контейнеров инфраструктуры (после изменения schemas/database)...')
+    print(f'{RED}Удаление и повторное создание контейнеров инфраструктуры (после изменения schemas/database)...{RESET}')
     subprocess.run('docker-compose down -v', shell=True)
     subprocess.run('docker-compose up -d', shell=True)
+    print(f'{YELLOW} Ожидание инициализации PostgreSQL...{RESET}')
+    time.sleep(15)
+    print(f'{YELLOW}Создаю таблицы... {RESET}')
+    subprocess.run('python database.py', shell=True)
+    
+    print(f'{YELLOW}Наполняю таблицы начальным набором данных... {RESET}')
     subprocess.run("python seed.py", shell=True)
 
 if __name__ == '__main__':

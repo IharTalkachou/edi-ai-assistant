@@ -44,6 +44,7 @@ class ApiClient:
         return resp
     
     # Администраторская часть
+    ## создание промпта
     def create_prompt(self, name, text, config):
         payload = {
             'name': name,
@@ -56,8 +57,20 @@ class ApiClient:
         )
         return resp
     
+    ## загрузка действующих правил 
     def get_rules(self):
         resp = self.session.get(f'{API_URL}/knowledge/')
         return resp.json() if resp.status_code == 200 else []
+    
+    ## создание XSD-схемы
+    def upload_schema(self, name, content):
+        resp = self.session.post(
+            f'{API_URL}/schemas/',
+            json = {
+                'name': name,
+                'xsd_content': content
+            }
+        )
+        return resp
 
 api = ApiClient()

@@ -111,12 +111,33 @@ def upload_document(
         }
     )
     
-    # попытка парсинга накладной
+    # попытка парсинга документа заданного типа
+    ## ищу схеу для этого типа документа
+    schema_db = db.query(database.ValidationSchema)\
+        .filter(database.ValidationSchema.name == doc.doc_type,
+                database.ValidationSchema.is_active == True)\
+        .first()
     parsed_data = {}
     validation_status = "pending"
+    validation_error_msg = None
     
-    if doc.doc_type == 'Invoice':
-        parser = EdiXmlParser()
+    parser = EdiXmlParser()
+    
+    ## если схема есть - валидирую
+    ## документ даже с ошибкой будет загружен, чтобы в случае обнаружения ошибки скормить его ИИ
+    if schema_db:
+        is_valid, error = parser.validate_xsd(
+            doc.content_xml.encode('utf-8'),
+            schema_db.xsd_content
+        )
+        if not is_valid:
+            validation_status = 'schema_error'
+            validation_error_msg = error
+            logger.warning(f'Документ не прошел проверку по XSD: {error}')
+    
+    
+    if validation_status != 'schema_error':
+        
         try:
             parsed_data = parser.parse_invoice(doc.content_xml)
             if parsed_data.get('validation_error'):
@@ -239,3 +260,43 @@ def get_prompt_history(name: str, db: Session = Depends(get_db)):
     if not prompt_history:
         raise HTTPException(status_code=404, detail='Отсутствуют промпты по заданному имени.')
     return prompt_history
+
+
+# ---Schemas API ---
+@app.post('/schemas/', response_model=schemas.ValidationSchemaResponse)
+def create_schema(schema: schemas.ValidationSchemaCreate, db: Session = Depends(get_db)):
+    # нужно деактивировать старые версии схемы перед созданием новой
+    old_schemas = db.query(database.ValidationSchema)\
+        .filter(database.ValidationSchema.name == schema.name,
+                database.ValidationSchema.is_active == True)\
+        .all()
+    
+    for s in old_schemas:
+        s.is_active = False
+    
+    # создание новой схемы
+    new_version = 1
+    if old_schemas:
+        new_version = old_schemas[0].version + 1
+    
+    new_schema = database.ValidationSchema(
+        name=schema.name,
+        xsd_content=schema.xsd_content,
+        version=new_version,
+        is_active=True 
+    )
+    
+    db.add(new_schema)
+    db.commit()
+    db.refresh(new_schema)
+    return new_schema
+
+@app.get('/schemas/{name}', response_model=schemas.ValidationSchemaResponse)
+def get_active_schema(name: str, db: Session = Depends(get_db)):
+    schema = db.query(database.ValidationSchema)\
+        .filter(database.ValidationSchema.name == name, 
+                database.ValidationSchema.is_active == True)\
+        .first()
+    if not schema:
+        raise HTTPException(status_code=404, detail='XSD-схема с данным именем не найдена.')
+    return schema
